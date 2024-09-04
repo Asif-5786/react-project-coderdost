@@ -1,0 +1,33 @@
+button {
+    padding: 1em 3em;
+    border-radius: 1em;
+    -webkit-border-radius: 1em;
+    -moz-border-radius: 1em;
+    -ms-border-radius: 1em;
+    -o-border-radius: 1em;
+    color: #000;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 1em;
+    transition: all 0.5s linear;
+    -webkit-transition: all 0.5s linear;
+    -moz-transition: all 0.5s linear;
+    -ms-transition: all 0.5s linear;
+    -o-transition: all 0.5s linear;
+}
+
+button:hover {
+    background-color: gray;
+}
+
+button.darkMode {
+    background-color: #000;
+    border: 1px solid yellow;
+    color: #dfeabd;
+}
+
+button.lightMode {
+    background-color: #666;
+    border: 1px solid black;
+    color: red;
+}

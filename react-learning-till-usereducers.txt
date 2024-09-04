@@ -1,0 +1,330 @@
+Addvideo.css:
+
+input {
+    display: block;
+    padding: 0.5em 5em;
+    margin-bottom: 10px;
+    outline: 0;
+}
+
+Addvideo.jsx:
+
+
+import { useEffect, useState } from 'react'
+import './Addvideo.css'
+
+let initialValue = {
+    time: '3 month ago',
+    channel: 'coder dost',
+    verified: false,
+    title: '',
+    views: ''
+};
+
+const Addvideo = ({ dispatch, editableVideo }) => {
+    const [video, setVideo] = useState({
+        time: '3 month ago',
+        channel: 'coder dost',
+        verified: false,
+        title: '',
+        views: ''
+    })
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (editableVideo) {
+            dispatch({ type: 'UPDATE', payload: video })
+        }
+        else {
+            dispatch({ type: 'ADD', payload: video })
+        }
+
+        setVideo(initialValue);
+
+    }
+    const handleChange = (e) => {
+        setVideo({
+            ...video,
+            [e.target.name]: e.target.value
+        })
+    }
+
+    useEffect(() => {
+        if (editableVideo) {
+            setVideo(editableVideo);
+        }
+    }, [editableVideo])
+    return (
+        <form>
+            <input type="text" placeholder='Title' onChange={handleChange} name='title' value={video.title} />
+            <input type="text" placeholder='Views' onChange={handleChange} name='views' value={video.views} />
+            <button onClick={handleSubmit}>{editableVideo ? 'Edit' : 'Add'} Video</button>
+        </form>
+    )
+}
+
+export default Addvideo
+
+
+Apps.jsx:
+
+
+import videoDB from '../data/data.js'
+import { useReducer, useState } from 'react'
+import Addvideo from './Addvideo'
+import Videolist from './Videolist.jsx'
+
+const Apps = () => {
+    const [editableVideo, setEditableVideo] = useState(null);
+
+    const videoReducer = (videos, action) => {              //videoReducer returns state
+        switch (action.type) {
+            case 'ADD':
+                return [...videos, { ...action.payload, id: videos.length + 1 }]
+            case 'DELETE':
+                return videos.filter((video) => video.id !== action.payload);
+            case 'UPDATE':
+                const index = videos.findIndex(v => v.id === action.payload.id);
+                const newVideos = [...videos]
+                newVideos.splice(index, 1, action.payload);
+                setEditableVideo(null);
+                return newVideos;
+            default:
+                return videos
+        }
+    }
+
+    const [videos, dispatch] = useReducer(videoReducer, videoDB);          //VIDEOS IS AN ARRAY OF OBJECTS
+
+    const editVideo = (id) => {
+        setEditableVideo(videos.find(video => video.id == id))
+    }
+
+    return (
+        <>
+            <div className='App'>
+                <Addvideo dispatch={dispatch} editableVideo={editableVideo}></Addvideo>
+                <Videolist dispatch={dispatch} editVideo={editVideo} videos={videos}></Videolist>
+            </div>
+        </>
+    )
+}
+
+export default Apps
+
+
+playbutton.css:
+
+button {
+    background-color: #000;
+    border: 1px solid yellow;
+    padding: 1em 3em;
+    border-radius: 1em;
+    -webkit-border-radius: 1em;
+    -moz-border-radius: 1em;
+    -ms-border-radius: 1em;
+    -o-border-radius: 1em;
+    color: #fff;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 1em;
+    transition: all 0.5s linear;
+    -webkit-transition: all 0.5s linear;
+    -moz-transition: all 0.5s linear;
+    -ms-transition: all 0.5s linear;
+    -o-transition: all 0.5s linear;
+}
+
+button:hover {
+    background-color: gray;
+}
+
+playbutton.jsx:
+
+
+import { useState } from 'react';
+import './playbutton.css'
+
+const Playbutton = ({ children, onPlay, onPause }) => {
+    // let playing = false;            //dont use this approach
+    const [playing, setPlaying] = useState(false);
+    const handleClick = (e) => {
+        e.stopPropagation();
+        if (playing) {
+            onPause();
+        }
+        else {
+            onPlay();
+        }
+        setPlaying(!playing);
+    }
+    return (
+        <div style={{ textAlign: 'center' }}>
+            <button onClick={handleClick}>{children}:{playing ? '||' : '>'}</button>
+        </div>
+    )
+}
+
+export default Playbutton
+
+
+video.css:
+
+* {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    margin: 0;
+}
+
+.container {
+    width: 15rem;
+    margin: 0 0.2em;
+    box-shadow: rgba(0, 0, 0, 1);
+}
+
+.pic img {
+    width: 100%;
+    transition: all 0.5s linear;
+    -webkit-transition: all 0.5s linear;
+    -moz-transition: all 0.5s linear;
+    -ms-transition: all 0.5s linear;
+    -o-transition: all 0.5s linear;
+}
+
+.pic img:hover {
+    transform: rotate(360deg);
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+}
+
+.title {
+    font-weight: bold;
+    margin-bottom: 0.5em;
+    color: #000;
+}
+
+.channel,
+.views {
+    font-size: small;
+    color: #000;
+    margin-bottom: 0.2em;
+}
+
+.views span {
+    padding: 0 0.5em;
+}
+
+.close {
+    position: absolute;
+    padding: 0.5em 1em;
+    right: 71px;
+    z-index: 1000;
+}
+
+.edit {
+    position: absolute;
+    padding: 0.5em;
+    left: 68px;
+    z-index: 1000;
+}
+
+video.jsx:
+
+
+import './Video.css'
+
+
+const Video = ({ title, channel = 'dosti', views, time, verified, id, children, dispatch, editVideo }) => {
+    return (
+        <>
+            <div className="container">
+                <div style={{ position: 'relative' }}>
+                    <button className='close' onClick={() => dispatch({ type: 'DELETE', payload: id })}>X</button>
+                    <button className='edit' onClick={() => editVideo(id)}>Edit</button>
+                </div>
+                <div className="pic">
+                    <img src={`../../public/hero_img.png`} alt="logo" />
+                </div>
+                <div className="title">{title}</div>
+                <div className="channel">{channel}{verified ? ' tick' : null}</div>
+                <div className="views">
+                    {views}views. {time}
+                </div>
+                {children}
+            </div>
+        </>
+    )
+}
+
+export default Video
+
+videoList.jsx:
+
+import Playbutton from './Playbutton'
+import Video from './Video'
+const Videolist = ({ videos, dispatch, editVideo }) => {
+    return (
+        <>
+            {videos.map(video => <Video
+                id={video.id}
+                title={video.title}
+                channel={video.channel}
+                views={video.views}
+                time={video.time}
+                verified={video.verified}
+                dispatch={dispatch}
+                editVideo={editVideo}
+            >
+                <Playbutton
+                    onPlay={() => { console.log('playing...', video.title) }}
+                    onPause={() => { console.log('paused...', video.title) }}>
+                    {video.title}
+                </Playbutton>
+            </Video>
+            )
+            }
+        </>
+    )
+}
+
+export default Videolist
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
